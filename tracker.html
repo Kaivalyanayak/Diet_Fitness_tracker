@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Logbook">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Logbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF8EF; --card:#FFFFFF; --ink:#2B2640; --ink-soft:#847D98;
+    --coral:#FF6F5E; --coral-deep:#E85A49; --teal:#3FC1B0; --teal-deep:#2A9D8F;
+    --yellow:#FFC94D; --veg:#4CAF7D; --veg-bg:#E4F5EB; --nonveg-deep:#D9503F; --nonveg-bg:#FFEAE6;
+    --period:#B784DD; --period-bg:#F3E8FC; --line:#F0E4D3; --shadow: 0 4px 14px rgba(43,38,64,0.07);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .app{max-width:780px;margin:0 auto;padding:26px 18px 90px;}
+  .brandrow{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;}
+  .brand{font-family:'Fredoka',sans-serif;font-weight:700;font-size:30px;color:var(--coral-deep);}
+  .datebadge{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;background:var(--card);padding:5px 10px;border-radius:20px;box-shadow:var(--shadow);}
+  .sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px;}
+  .ramp{background:var(--card);border-radius:20px;padding:16px 18px 14px;margin-bottom:18px;box-shadow:var(--shadow);}
+  .ramp-label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal-deep);margin-bottom:10px;font-weight:700;}
+  .ramp-track{position:relative;height:44px;}
+  .ramp-line{position:absolute;left:2%;right:2%;top:26px;height:3px;background:var(--line);border-radius:3px;}
+  .ramp-line-fill{position:absolute;left:2%;top:26px;height:3px;background:linear-gradient(90deg,var(--yellow),var(--teal));border-radius:3px;}
+  .ramp-dot{position:absolute;top:14px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-soft);transition:all .2s;}
+  .ramp-dot.done{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .ramp-dot.today{border-color:var(--coral);border-width:3px;background:#fff;color:var(--coral-deep);font-weight:700;width:28px;height:28px;top:12px;margin-left:-14px;}
+  .ramp-caption{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+  .ramp-caption b{color:var(--ink);}
+  .banner{border-radius:18px;padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow);}
+  .banner.period{background:var(--period-bg);}
+  .banner.prep{background:#FFF3D6;}
+  .banner .lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px;}
+  .banner.period .lbl{color:var(--period);}
+  .banner.prep .lbl{color:#B8860B;}
+  .banner .txt{font-size:13.5px;color:var(--ink);}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;}
+  .tab{font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:9px 14px;background:var(--card);border:none;border-radius:20px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;box-shadow:var(--shadow);}
+  .tab.active{color:#fff;background:var(--coral);}
+  .card{background:var(--card);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .card h2{font-family:'Fredoka',sans-serif;font-size:19px;font-weight:600;margin:0 0 4px;}
+  .card .meta{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:4px 10px;border-radius:20px;margin-right:6px;}
+  .tag.veg{background:var(--veg-bg);color:var(--veg);}
+  .tag.nonveg{background:var(--nonveg-bg);color:var(--nonveg-deep);}
+  .tag.rest{background:#EFEAF7;color:#8577AD;}
+  .tag.period{background:var(--period-bg);color:var(--period);}
+  .simplecheck{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .simplecheck:last-child{border-bottom:none;}
+  .check{width:22px;height:22px;flex:0 0 22px;border-radius:8px;border:2px solid var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;background:var(--card);}
+  .check.on{background:var(--teal);border-color:var(--teal);}
+  .check.on::after{content:'✓';color:#fff;font-size:14px;font-weight:700;}
+  .item-text{font-size:14.5px;line-height:1.4;}
+  .item-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);margin-left:8px;}
+  .item-text.struck{color:var(--ink-soft);text-decoration:line-through;}
+  .meal-block{border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;}
+  .meal-block:last-child{margin-bottom:0;}
+  .meal-head{display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+  .meal-head .item-text{flex:1;}
+  .meal-caret{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .meal-body{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+  .optchip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .optchip{font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:20px;border:2px solid var(--line);background:var(--bg);color:var(--ink-soft);cursor:pointer;}
+  .optchip.sel{border-color:var(--teal);background:var(--teal);color:#fff;}
+  .opt-content{font-size:13.5px;line-height:1.6;}
+  .water-row{display:flex;align-items:center;gap:16px;}
+  .water-glasses{display:flex;flex-wrap:wrap;gap:8px;flex:1;}
+  .glass{width:30px;height:34px;border-radius:6px 6px 12px 12px;border:2px solid var(--teal);cursor:pointer;background:var(--card);transition:background .15s;}
+  .glass.on{background:var(--teal);}
+  .water-total{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--teal-deep);font-weight:700;white-space:nowrap;}
+  .btn{font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 16px;border-radius:20px;border:none;background:var(--coral);color:#fff;cursor:pointer;}
+  .btn.ghost{background:#F3EEE3;color:var(--ink);}
+  .btn.teal{background:var(--teal);}
+  .btn.plum{background:var(--period);}
+  .btn.small{padding:7px 13px;font-size:12px;}
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .chip{font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:20px;border:2px solid var(--line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
+  .chip.sel{border-color:var(--coral);background:var(--coral);color:#fff;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+  .stat{background:#FBF7EF;border-radius:14px;padding:12px 14px;}
+  .stat .num{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--coral-deep);}
+  .stat .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em;}
+  .shop-cat{font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;margin:16px 0 8px;color:var(--teal-deep);}
+  .shop-cat:first-child{margin-top:0;}
+  .shop-item{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;}
+  .shop-item.checked span{color:var(--ink-soft);text-decoration:line-through;}
+  .recipe-ing{font-size:13.5px;line-height:1.7;color:var(--ink-soft);}
+  .recipe-steps{font-size:13.5px;line-height:1.7;padding-left:18px;margin:8px 0 0;}
+  .howto{background:#FFF3D6;color:#8A6512;font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:10px;margin-top:10px;display:inline-block;}
+  .divider{height:1px;background:var(--line);margin:14px 0;}
+  .loading{padding:60px 0;text-align:center;color:var(--ink-soft);font-size:13px;}
+  label.f{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+  input.f{width:100%;padding:10px;border:2px solid var(--line);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;background:#FBF7EF;color:var(--ink);margin-bottom:14px;}
+  textarea.f{width:100%;padding:10px;border:2px solid var(--line);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;background:#FBF7EF;color:var(--ink);margin-bottom:14px;resize:vertical;min-height:60px;}
+  .craving-item{display:flex;gap:10px;padding:8px 0;font-size:14px;align-items:baseline;border-bottom:1px solid var(--line);}
+  .craving-item:last-child{border-bottom:none;}
+  .logrow{display:flex;justify-content:space-between;font-size:13.5px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .logrow:last-child{border-bottom:none;}
+  .logrow .d{color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:12px;}
+  .exercise-list{font-size:14px;line-height:1.8;margin:0;padding-left:18px;}
+  .recipe-card-clickable{cursor:pointer;transition:transform .1s;}
+  .recipe-card-clickable:active{transform:scale(0.98);}
+  .recipe-tap-hint{font-size:12px;color:var(--teal-deep);font-weight:600;margin-top:8px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(43,38,64,0.55);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+  @media(min-width:600px){ .modal-overlay{align-items:center;} }
+  .modal-box{background:var(--card);border-radius:24px 24px 0 0;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:24px 22px 30px;position:relative;}
+  @media(min-width:600px){ .modal-box{border-radius:24px;} }
+  .modal-close{position:sticky;top:0;float:right;width:32px;height:32px;border-radius:50%;background:#F3EEE3;border:none;font-size:16px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:-32px;}
+  .modal-box h2{font-family:'Fredoka',sans-serif;font-size:22px;margin:0 0 6px;padding-right:36px;}
+  .modal-section-title{font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;color:var(--teal-deep);margin:18px 0 8px;}
+  .modal-ing-item{font-size:14px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .modal-ing-item:last-child{border-bottom:none;}
+  .modal-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .modal-step:last-child{border-bottom:none;}
+  .modal-step-num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .modal-step-text{font-size:14px;line-height:1.5;padding-top:2px;}
+</style>
+</head>
+<body>
+<div id="root" class="app"><div class="loading">Opening your logbook…</div></div>
+
+<script>
+// Fallback storage: if window.storage (Claude's built-in storage) isn't present —
+// e.g. when this file is opened directly in Safari / added to Home Screen —
+// use the phone's local storage instead, so your data still saves.
+if (typeof window.storage === 'undefined') {
+  window.storage = {
+    get: async (key) => {
+      const v = localStorage.getItem('logbook:'+key);
+      if (v === null) throw new Error('not found');
+      return { key, value: v, shared: false };
+    },
+    set: async (key, value) => {
+      localStorage.setItem('logbook:'+key, value);
+      return { key, value, shared: false };
+    },
+    delete: async (key) => {
+      localStorage.removeItem('logbook:'+key);
+      return { key, deleted: true, shared: false };
+    },
+    list: async (prefix) => {
+      const all = Object.keys(localStorage).filter(k => k.startsWith('logbook:'));
+      const keys = all.filter(k => !prefix || k.startsWith('logbook:'+prefix)).map(k => k.replace('logbook:',''));
+      return { keys };
+    }
+  };
+}
+</script>
+<script>
+const START = new Date(2026,6,27);
+const DAY_TYPES = [
+  {name:'Sunday', diet:'nonveg', workoutLabel:'Rest + Sunday shopping & meal prep'},
+  {name:'Monday', diet:'veg', workoutLabel:'Glutes & Legs'},
+  {name:'Tuesday', diet:'nonveg', workoutLabel:'Upper Body / Chest'},
+  {name:'Wednesday', diet:'nonveg', workoutLabel:'Core & Waist'},
+  {name:'Thursday', diet:'veg', workoutLabel:'Full Body Circuit'},
+  {name:'Friday', diet:'nonveg', workoutLabel:'Glutes & Legs (higher volume)'},
+  {name:'Saturday', diet:'nonveg', workoutLabel:'Light cardio — 20-25 min walk/cycle'}
+];
+const FULL_SCHEDULE = {wake:'6:30 AM',breakfast:'8:00 AM',lunch:'1:00 PM',snack:'4:30 PM',dinner:'7:30 PM',wind:'10:00 PM',lights:'10:30 PM'};
+const EASE_SCHEDULE = {wake:'7:00 AM',breakfast:'8:30 AM',lunch:'1:30 PM',snack:'5:00 PM',dinner:'8:00 PM',wind:'10:30 PM',lights:'11:00 PM'};
+
+// Monday-first order, mapped to dow via (dow+6)%7
+const WORKOUTS = [
+  {full:['Squats — 3x12','Hip thrusts — 3x15','Bulgarian split squats — 3x10/side','Glute bridges — 3x15'], ease:['Bodyweight squats — 2x10','Glute bridges — 2x12','Standing marches — 2x15/side']},
+  {full:['Push-ups — 3x10','Dumbbell chest press — 3x12','Bent-over rows — 3x12','Shoulder press — 3x10'], ease:['Wall or knee push-ups — 2x8','Band/light rows — 2x10','Arm circles + shoulder taps — 2 min']},
+  {full:['Plank — 3x40s','Side plank — 3x25s/side','Cable/band woodchops — 3x12/side','Leg raises — 3x12'], ease:['Plank — 2x20s','Side plank — 2x15s/side','Slow leg raises — 2x8']},
+  {full:['Squat to press — 3x12','Reverse lunges — 3x10/side','Push-ups — 3x10','Plank — 3x30s'], ease:['Bodyweight circuit, half volume, 15 min total, easy pace']},
+  {full:['Squats — 4x12','Hip thrusts — 4x15','Step-ups — 3x10/side','Glute bridges — 3x15'], ease:['Bodyweight squats — 2x10','Hip thrusts — 2x12','Step-ups — 2x8/side']},
+  {full:['Brisk walk or cycle — 25 min, steady pace'], ease:['Gentle walk — 15 min, easy pace']},
+  {full:['Full rest. Shopping + meal prep for the week ahead.'], ease:['Full rest. Shopping + light meal prep.']},
+];
+
+const CRAVINGS = [
+  {name:'2-3 squares dark chocolate (70%+)', why:'Real chocolate, small portion — satisfies without a full binge.'},
+  {name:'Medjool date stuffed with peanut butter', why:'Sweet, chewy, caramel-like — plus fibre and protein.'},
+  {name:'Frozen banana "nice cream"', why:'Blend a frozen banana with a splash of milk — tastes like soft-serve.'},
+  {name:'Greek yogurt + honey + cinnamon', why:'Creamy and sweet, with protein to keep you full.'},
+  {name:'Oat-date energy balls (oats, dates, cocoa, peanut butter)', why:'Batch-make a few on day 1, keep in the fridge all week.'},
+  {name:'Frozen grapes', why:'Sweet, cold, satisfying to bite into — basically candy.'},
+  {name:'Warm milk + cocoa powder + a little jaggery', why:'A cozy, chocolatey drink for evening cravings.'}
+];
+
+const RECIPE_SETS = [
+  { label:'Home-style Indian', items:[
+    {name:'Paneer & Veggie Stir-fry', tag:'veg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['200g low-fat paneer, cubed','1 capsicum, 1 carrot, handful beans','1 tbsp olive oil','Garlic, ginger, soy sauce, black pepper'], steps:['Saute garlic & ginger in oil for 1 min.','Add vegetables, stir-fry on high heat 4-5 min.','Add paneer, soy sauce, pepper. Toss 2-3 min.'], howToEat:'Reheat: microwave 1-2 min, or pan-warm 3 min.'},
+    {name:'Moong Dal Power Bowl', tag:'veg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['1 cup moong dal (soak 6-8 hrs / overnight before cooking)','Spinach, tomato, onion, cumin, turmeric','1 tsp ghee or oil'], steps:['Soak dal overnight, drain & rinse.','Pressure cook dal with turmeric, 3 whistles.','Saute onion, tomato, cumin in ghee, stir into dal, add spinach, simmer 5 min.'], howToEat:'Reheat: microwave 1-2 min, add a splash of water if thick.'},
+    {name:'Tofu Stir Fry', tag:'veg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['400g firm tofu, cubed','Broccoli, bell pepper, spring onion','Low-sodium soy sauce, sesame oil, ginger'], steps:['Pan-sear tofu until golden, set aside.','Stir-fry vegetables with ginger 3-4 min.','Return tofu, add soy sauce and sesame oil.'], howToEat:'Reheat: microwave 1-2 min or quick pan toss.'},
+    {name:'Grilled Chicken & Sweet Potato', tag:'nonveg', prepType:'prep', lastsDays:3, time:'30 min · makes 3 servings', ing:['450g chicken breast','2 sweet potatoes, cubed','Olive oil, paprika, garlic, lemon','Salad greens'], steps:['Marinate chicken 15 min.','Roast sweet potato at 200C for 20 min.','Grill/pan-sear chicken 6-7 min per side.'], howToEat:'Reheat: microwave 1-2 min. Keep salad greens separate, add fresh & cold.'},
+    {name:'Chicken & Quinoa Bowl', tag:'nonveg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['450g chicken mince or breast, diced','1 cup quinoa, cooked','Cherry tomatoes, cucumber, feta (optional)','Olive oil, lemon, oregano'], steps:['Cook chicken with oregano, salt, pepper.','Combine with cooked quinoa, tomatoes, cucumber.','Dress with olive oil and lemon.'], howToEat:'Great cold or reheated — microwave 1 min if you prefer it warm.'},
+    {name:'Chicken & Veg Curry (light)', tag:'nonveg', prepType:'prep', lastsDays:3, time:'30 min · makes 3 servings', ing:['450g chicken, diced','Onion, tomato, garlic, ginger','Turmeric, coriander powder, garam masala','1 tsp oil'], steps:['Saute onion, garlic, ginger until soft.','Add tomato and spices, cook down.','Add chicken, simmer covered 15-18 min.'], howToEat:'Reheat: microwave 1-2 min.'},
+  ]},
+  { label:'Asian Kitchen', items:[
+    {name:'Tofu & Broccoli Stir-fry', tag:'veg', prepType:'prep', lastsDays:3, time:'18 min · makes 3 servings', ing:['400g firm tofu','Broccoli, carrots, spring onion','Soy sauce, garlic, ginger, sesame oil'], steps:['Pan-sear tofu until golden.','Stir-fry vegetables 3-4 min.','Combine, add soy sauce & sesame oil.'], howToEat:'Reheat: microwave 1-2 min, tastes great warm.'},
+    {name:'Vegetable Fried Rice', tag:'veg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['2 cups cooked brown rice (day-old is best)','Carrots, peas, beans, spring onion','Soy sauce, garlic, a little sesame oil'], steps:['Saute garlic, add chopped vegetables.','Add rice, toss on high heat 4-5 min.','Season with soy sauce.'], howToEat:'Reheat: microwave 1-2 min, sprinkle water to keep it from drying.'},
+    {name:'Moong Sprouts Salad', tag:'veg', prepType:'fresh', lastsDays:1, time:'10 min · makes 2 servings, best fresh', ing:['1 cup moong sprouts','Cucumber, tomato, onion, coriander','Lemon, chaat masala'], steps:['Toss sprouts with chopped vegetables.','Add lemon juice and chaat masala.'], howToEat:"Eat cold, straight from the fridge - don't reheat."},
+    {name:'Chicken Teriyaki Bowl', tag:'nonveg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['450g chicken breast, sliced','Soy sauce, honey, garlic, ginger','Steamed rice, broccoli'], steps:['Marinate chicken in soy-ginger-garlic 15 min.','Pan-sear until cooked through, glaze with sauce.'], howToEat:'Reheat: microwave 1-2 min.'},
+    {name:'Thai Basil Chicken', tag:'nonveg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['450g chicken mince','Thai basil, chilli, garlic','Soy sauce, a little fish sauce (optional)'], steps:['Saute garlic & chilli.','Add chicken mince, cook through.','Stir in soy sauce and basil off heat.'], howToEat:'Reheat: microwave 1-2 min, add fresh basil on top if you have it.'},
+    {name:'Chicken & Veg Noodle Stir-fry', tag:'nonveg', prepType:'prep', lastsDays:3, time:'22 min · makes 3 servings', ing:['400g chicken breast, sliced','Noodles, cabbage, carrot, spring onion','Soy sauce, garlic, ginger'], steps:['Cook noodles, set aside.','Stir-fry chicken and vegetables.','Toss in noodles and sauce.'], howToEat:'Reheat: microwave 1-2 min, add splash of water.'},
+  ]},
+  { label:'Mediterranean & Mexican', items:[
+    {name:'Greek Chickpea Salad', tag:'veg', prepType:'prep', lastsDays:3, time:'10 min · makes 3 servings, best cold', ing:['2 cups boiled chickpeas','Cucumber, tomato, red onion, olives','Olive oil, lemon, oregano, feta (optional)'], steps:['Combine chickpeas and chopped vegetables.','Dress with olive oil, lemon, oregano.'], howToEat:'Eat cold, straight from the fridge — no reheating needed.'},
+    {name:'Falafel-style Chickpea Patties', tag:'veg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['2 cups soaked chickpeas (soak overnight, do not boil)','Garlic, onion, coriander, cumin','1 tbsp oil for pan-frying'], steps:['Soak chickpeas overnight, drain well.','Blend with garlic, onion, herbs, spices to a coarse mix.','Shape patties, pan-fry or air-fry until golden.'], howToEat:'Reheat: pan or air-fryer 3-4 min for crispness.'},
+    {name:'Mexican Veg & Bean Bowl', tag:'veg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['1 cup black beans, cooked','Corn, brown rice, bell pepper, onion','Cumin, paprika, lime, coriander'], steps:['Saute onion, pepper, spices.','Add beans and corn, warm through.','Serve over rice with lime and coriander.'], howToEat:'Reheat: microwave 1-2 min.'},
+    {name:'Chicken Fajita Bowl', tag:'nonveg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['450g chicken breast, sliced','Bell peppers, onion','Cumin, paprika, lime, brown rice'], steps:['Marinate chicken with spices and lime.','Saute chicken and vegetables together on high heat.'], howToEat:'Reheat: microwave 1-2 min.'},
+    {name:'Grilled Chicken Greek Salad', tag:'nonveg', prepType:'prep', lastsDays:3, time:'20 min · makes 3 servings', ing:['350g chicken breast, grilled','Cucumber, tomato, red onion, olives, feta'], steps:['Grill or pan-sear chicken, slice.','Toss salad ingredients.','Combine with olive oil and lemon dressing.'], howToEat:'Keep chicken and salad separate; reheat chicken 1 min, add cold salad fresh.'},
+    {name:'Chicken & Black Bean Burrito Bowl', tag:'nonveg', prepType:'prep', lastsDays:3, time:'25 min · makes 3 servings', ing:['400g chicken breast, diced','Black beans, brown rice, corn, salsa'], steps:['Cook chicken with cumin and paprika.','Combine with rice, beans, corn.','Top with salsa.'], howToEat:'Reheat: microwave 1-2 min, add salsa fresh.'},
+  ]},
+];
+
+const BREAKFAST_OPTIONS = {
+  veg: [
+    {name:'Oats with Fruit & Chia', prepType:'fresh', lastsDays:0, ing:['1/2 cup rolled oats','1 cup milk or water','1/2 banana, sliced','1 tsp chia seeds','Cinnamon'], steps:['Cook oats in milk/water 5 min.','Top with banana, chia, cinnamon.']},
+    {name:'Vegetable Poha', prepType:'fresh', lastsDays:0, ing:['1 cup flattened rice (poha)','Onion, peas, carrot, mustard seeds, turmeric','Lemon, coriander'], steps:['Rinse poha, drain well.','Saute onion, mustard seeds, vegetables.','Add poha and turmeric, toss 3-4 min, finish with lemon.']},
+  ],
+  nonveg: [
+    {name:'Egg White Veggie Scramble', prepType:'fresh', lastsDays:0, ing:['3 egg whites + 1 whole egg','Onion, tomato, spinach, chilli','Black pepper, herbs'], steps:['Whisk eggs with pepper.','Saute vegetables 2 min.','Pour eggs in, scramble on medium heat.']},
+    {name:'Masala Omelette with Toast', prepType:'fresh', lastsDays:0, ing:['2 eggs','Onion, tomato, green chilli, coriander','1 slice whole wheat toast'], steps:['Whisk eggs with chopped vegetables and spices.','Cook on medium heat until set.','Serve with toast.']},
+  ]
+};
+const SNACK_OPTIONS = [
+  {name:'Roasted Chana Chaat', prepType:'fresh', lastsDays:0, ing:['1 cup roasted chana','Onion, tomato, cucumber, chaat masala','Lemon'], steps:['Toss all ingredients together.','Finish with lemon juice.']},
+  {name:'Greek Yogurt & Fruit Bowl', prepType:'fresh', lastsDays:0, ing:['1 cup Greek yogurt','1/2 cup mixed fruit','A few nuts'], steps:['Layer yogurt and fruit.','Top with nuts.']},
+  {name:'Peanut Butter Banana Toast', prepType:'fresh', lastsDays:0, ing:['1 slice whole wheat bread','1 tbsp peanut butter','1/2 banana, sliced'], steps:['Toast the bread.','Spread peanut butter, top with banana slices.']},
+];
+
+const MORNING_DRINKS = [
+  {name:'ABC Juice', ing:['1 apple','Small piece beetroot','1 carrot'], benefit:'Iron, antioxidants, natural sweetness.', shelf:'24 hrs refrigerated'},
+  {name:'Gut Support Juice', ing:['1/2 cucumber','1 small amla','1/2 inch ginger','Juice of 1/2 lemon','6-8 mint leaves','250ml water'], benefit:'Hydration, vitamin C, digestive support, anti-inflammatory.', shelf:'24 hrs refrigerated'},
+  {name:'Skin Glow Juice', ing:['1 carrot','1 orange','Small amla','Ginger','Water'], benefit:'Vitamin A, vitamin C, antioxidants for skin.', shelf:'24 hrs refrigerated'},
+  {name:'Green Glow Juice', ing:['Handful spinach','1/2 cucumber','Mint','Lemon','Ginger','Water'], benefit:'Hydration, folate, vitamin K.', shelf:'24 hrs refrigerated'},
+  {name:'Turmeric Morning Shot', ing:['1/2 tsp turmeric','Pinch black pepper','1/2 inch ginger','Juice of 1/2 lemon','50ml warm water'], benefit:'Anti-inflammatory, gut support.', shelf:'Drink immediately, does not store'},
+  {name:'Apple Ginger Juice', ing:['1 apple','Ginger','Lemon','Pinch cinnamon'], benefit:'Digestive support, antioxidants.', shelf:'24-36 hrs refrigerated'},
+  {name:'Beetroot Energy Juice', ing:['1 beetroot','1 carrot','1 apple','Ginger'], benefit:'Iron, natural energy, circulation support.', shelf:'24 hrs refrigerated'},
+];
+
+const ORDER_OPTIONS = [
+  [{cuisine:'Indian', dish:'Tandoori chicken tikka + salad', note:'No butter/cream, extra salad, skip naan or ask whole wheat.'}, {cuisine:'Mexican', dish:'Chicken burrito bowl', note:'Rice + beans + grilled chicken + salsa, hold cheese & sour cream.'}],
+  [{cuisine:'Italian', dish:'Thin-crust veggie pizza, light cheese', note:'Whole wheat base if available, extra veggies, light cheese.'}, {cuisine:'Asian', dish:'Vegetable pad thai or fried rice', note:'Less oil, extra vegetables.'}],
+  [{cuisine:'Mexican', dish:'Grilled chicken fajita bowl', note:'Skip sour cream/cheese, double veggies.'}, {cuisine:'Italian', dish:'Grilled chicken zucchini pasta', note:'Olive oil based sauce, not cream.'}],
+  [{cuisine:'Asian', dish:'Chicken teriyaki bowl with steamed rice', note:'Ask sauce on the side to control sugar/salt.'}, {cuisine:'Indian', dish:'Grilled tandoori chicken with salad', note:'Skip butter naan, ask for salad or roti.'}],
+  [{cuisine:'Mediterranean', dish:'Falafel bowl with hummus & salad', note:'Baked falafel if available, dressing on the side.'}, {cuisine:'Asian', dish:'Vegetable stir-fry noodles/rice', note:'Less oil, extra veggies, tofu for protein.'}],
+  [{cuisine:'Mexican', dish:'Chicken fajita bowl or tacos (grilled)', note:'Corn tortillas over flour, salsa not sour cream.'}, {cuisine:'Indian', dish:'Chicken tikka with roti/salad', note:'Ask less oil, grilled not fried.'}],
+  [{cuisine:'Italian', dish:'Grilled chicken salad or light pasta', note:'Dressing on side, olive oil based sauce.'}, {cuisine:'Asian', dish:'Clear soup + grilled chicken skewers', note:'Light broth-based, avoid creamy soups.'}],
+];
+
+const SHOPPING = {
+  'Fresh Produce (buy every 3 days)': ['Chicken breast — 800g','Paneer — 300g','Tofu — 300g','Eggs — 10','Spinach, lettuce, tomatoes, cucumber','Capsicum, carrots, broccoli, beans','Onion, garlic, ginger, lemon'],
+  'Weekly Essentials': ['Greek yogurt / curd — 1 kg','Milk — 1 L','Fruits — apples, bananas, papaya (pick 3-5)','Whole wheat wraps or roti flour'],
+  'Pantry (top up if low)': ['Brown rice / quinoa','Rolled oats','Olive oil','Almonds, walnuts, chia/flax seeds','Soy sauce, vinegar, spices'],
+  'Cravings kit (days 1-5 of period)': ['Dark chocolate 70%+ — 1 bar','Medjool dates — 250g','Natural peanut butter — small jar','Frozen grapes / extra bananas','Cocoa powder — small pack','Jaggery or honey — small jar'],
+  'Morning drink ingredients': ['Cucumber, amla, mint, ginger, lemon','Carrot, orange, beetroot','Spinach','Turmeric (whole pantry item)']
+};
+
+const FEEDBACK_OPTIONS = ['On track','Missed a task','Ate a bit extra','Cheat meal','Cheat day'];
+
+function ymd(d){return d.toISOString().slice(0,10);}
+function dateOnly(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function fmtTime(hours){
+  let h=((hours%24)+24)%24;
+  let hh=Math.floor(h); let mm=Math.round((h-hh)*60);
+  if(mm===60){mm=0;hh+=1;hh=hh%24;}
+  const ampm = hh>=12 ? 'PM':'AM';
+  let disp = hh%12; if(disp===0) disp=12;
+  return disp+':'+String(mm).padStart(2,'0')+' '+ampm;
+}
+function timeStrToHours(t){ if(!t) return null; const parts=t.split(':').map(Number); return parts[0]+parts[1]/60; }
+
+function cycleInfo(now, cycle){
+  if(!cycle || !cycle.lastStart) return {active:false, periodDay:null, phase:null};
+  const last = new Date(cycle.lastStart+'T00:00:00');
+  const avg = cycle.avgLength || 28;
+  const diffDays = Math.floor((dateOnly(now)-dateOnly(last))/86400000);
+  if(diffDays<0) return {active:false, periodDay:null, phase:null};
+  const cyclePos = ((diffDays % avg)+avg)%avg;
+  if(cyclePos < 5){ const periodDay = cyclePos+1; const phase = periodDay<=3 ? 'rest' : 'light'; return {active:true, periodDay, phase}; }
+  return {active:false, periodDay:null, phase:null};
+}
+function prepCycleInfo(now, anchor){
+  const anchorDate = anchor ? new Date(anchor+'T00:00:00') : START;
+  const diff = Math.floor((dateOnly(now)-dateOnly(anchorDate))/86400000);
+  const pos = ((diff%3)+3)%3;
+  return {pos, isPrepDay: pos===0};
+}
+function sleepTargetsFor(date){
+  const daysSince = Math.max(0, Math.floor((dateOnly(date)-START)/86400000));
+  const steps = Math.floor(daysSince/2);
+  const targetBed = Math.max(22.5, 28.5 - steps*(20/60));
+  const targetWake = Math.max(6.5, 12.5 - steps*(20/60));
+  return {targetBed, targetWake, bedStr:fmtTime(targetBed), wakeStr:fmtTime(targetWake)};
+}
+
+function dayInfo(date, cycle, prepAnchor, yesterdayFeedback, yesterdayExtraCal){
+  const daysSince = Math.floor((dateOnly(date) - START) / 86400000);
+  const dow = date.getDay();
+  const base = DAY_TYPES[dow];
+  const easing = daysSince>=0 && daysSince<7;
+  const easeDay = easing ? daysSince+1 : null;
+  let calTarget, waterTarget;
+  if(easing){ calTarget = Math.round(1750 - (easeDay-1)*(150/6)); waterTarget = Math.round((2000 + (easeDay-1)*(800/6))/50)*50; }
+  else if(daysSince<0){ calTarget = 1750; waterTarget = 2000; }
+  else { calTarget = 1550; waterTarget = 3000; }
+  const period = cycleInfo(date, cycle);
+  let workoutLabel = base.workoutLabel;
+  let calNote = '';
+  if(period.active){
+    if(period.phase==='rest'){ workoutLabel = 'Rest — period day '+period.periodDay+' of 5, no exercise scheduled'; calTarget += 150; calNote='Nudged up for period days.'; }
+    else { workoutLabel = 'Light movement only — period day '+period.periodDay+' of 5'; calTarget += 100; calNote='Nudged up for period days.'; }
+  }
+  const extra = yesterdayExtraCal||0;
+  if(extra >= 600){ calTarget -= 150; calNote='Nudged down gently after a bigger extra yesterday.'; }
+  else if(extra >= 250){ calTarget -= 75; calNote='Nudged down gently after some extra calories yesterday.'; }
+  else if(yesterdayFeedback==='Cheat day'){ calTarget -= 150; calNote='Nudged down gently after yesterday.'; }
+  else if(yesterdayFeedback==='Cheat meal'){ calTarget -= 100; calNote='Nudged down gently after yesterday.'; }
+  else if(yesterdayFeedback==='Ate a bit extra'){ calTarget -= 75; calNote='Nudged down gently after yesterday.'; }
+  const prep = prepCycleInfo(date, prepAnchor);
+  return {...base, workoutLabel, dow, daysSince, easing, easeDay: easeDay||1, calTarget, waterTarget, notStarted: daysSince<0, period, prep, calNote};
+}
+
+function mealNoteFor(slot, prepPos){
+  if(slot==='breakfast') return 'Make fresh this morning (~10 min).';
+  if(slot==='snack') return 'No prep needed — straight from fridge or pantry.';
+  if(prepPos===0) return 'Freshly cooked today — no reheating needed.';
+  if(prepPos===1) return 'From the fridge — microwave 1-2 min.';
+  return 'Last of this batch — microwave 1-2 min, finish today for freshness.';
+}
+
+function getFreshRecipe(slot, dow, diet, monthSet){
+  if(slot==='breakfast'){ const list = BREAKFAST_OPTIONS[diet]; return list[dow%list.length]; }
+  if(slot==='snack'){ return SNACK_OPTIONS[dow%SNACK_OPTIONS.length]; }
+  const filtered = monthSet.items.filter(r=>r.tag===diet);
+  const idx = slot==='lunch' ? dow%filtered.length : (dow+1)%filtered.length;
+  return filtered[idx];
+}
+function getOrderIn(slot, dow){
+  if(slot==='breakfast') return {cuisine:'Any', dish:'Protein bowl, omelette, or idli/upma', note:'Ask for less oil/butter, extra protein.'};
+  if(slot==='snack') return {cuisine:'Any', dish:'Fruit bowl, protein shake, or roasted nuts', note:'Grab it from a nearby cafe or juice bar.'};
+  const opts = ORDER_OPTIONS[dow];
+  return slot==='lunch' ? opts[0] : opts[1];
+}
+
+let mealUI = { breakfast:{open:false, sel:null}, lunch:{open:false, sel:null}, snack:{open:false, sel:null}, dinner:{open:false, sel:null} };
+let state = { checklist:{}, water:{}, shopping:{}, cycle:{avgLength:28, lastStart:null}, prepAnchor:null, feedback:{}, weightLog:[], sleepLog:[], yesterdayFeedback:null, yesterdayExtraCal:0, recipeSetOverride:null, extraLog:{}, todayAdjustment:{} };
+function currentRecipeSetIndex(now){ return state.recipeSetOverride!==null ? state.recipeSetOverride : now.getMonth()%3; }
+async function saveRecipeOverride(){ try{ await window.storage.set('recipe-set-override', JSON.stringify(state.recipeSetOverride)); }catch(e){console.error(e);} }
+
+async function callClaudeJSON(system, user){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: system,
+      messages: [{ role: "user", content: user }]
+    })
+  });
+  const data = await response.json();
+  const text = (data.content||[]).map(b=>b.text||'').join('\n');
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+function extraLogTotal(dateKey){
+  const list = state.extraLog[dateKey]||[];
+  return list.reduce((sum,e)=>sum+(e.calories||0),0);
+}
+
+async function loadState(){
+  const today = ymd(new Date());
+  const yesterday = ymd(new Date(Date.now()-86400000));
+  try{ const r = await window.storage.get('daily-state:'+today); if(r){ const v=JSON.parse(r.value); state.checklist=v.checklist||{}; state.water[today]=v.water||0; state.feedback[today]=v.feedback||null; state.extraLog[today]=v.extraLog||[]; state.todayAdjustment[today]=v.adjustment||null; } }catch(e){}
+  try{ const r = await window.storage.get('daily-state:'+yesterday); if(r){ const v=JSON.parse(r.value); state.yesterdayFeedback = v.feedback ? v.feedback.status : null; state.yesterdayExtraCal = (v.extraLog||[]).reduce((s,e)=>s+(e.calories||0),0); } }catch(e){}
+  try{ const r = await window.storage.get('shopping-state'); if(r) state.shopping = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('cycle-state'); if(r) state.cycle = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('prep-anchor'); if(r) state.prepAnchor = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('weight-log'); if(r) state.weightLog = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('sleep-log'); if(r) state.sleepLog = JSON.parse(r.value); }catch(e){}
+  try{ const r = await window.storage.get('recipe-set-override'); if(r) state.recipeSetOverride = JSON.parse(r.value); }catch(e){}
+}
+async function saveDaily(){
+  const today = ymd(new Date());
+  try{ await window.storage.set('daily-state:'+today, JSON.stringify({checklist:state.checklist, water: state.water[today]||0, feedback: state.feedback[today]||null, extraLog: state.extraLog[today]||[], adjustment: state.todayAdjustment[today]||null})); }catch(e){console.error(e);}
+}
+async function saveShopping(){ try{ await window.storage.set('shopping-state', JSON.stringify(state.shopping)); }catch(e){console.error(e);} }
+async function saveCycle(){ try{ await window.storage.set('cycle-state', JSON.stringify(state.cycle)); }catch(e){console.error(e);} }
+async function savePrepAnchor(){ try{ await window.storage.set('prep-anchor', JSON.stringify(state.prepAnchor)); }catch(e){console.error(e);} }
+async function saveWeightLog(){ try{ await window.storage.set('weight-log', JSON.stringify(state.weightLog)); }catch(e){console.error(e);} }
+async function saveSleepLog(){ try{ await window.storage.set('sleep-log', JSON.stringify(state.sleepLog)); }catch(e){console.error(e);} }
+
+let activeTab = 'today';
+
+function render(){
+  const root = document.getElementById('root');
+  const now = new Date();
+  const info = dayInfo(now, state.cycle, state.prepAnchor, state.yesterdayFeedback, state.yesterdayExtraCal);
+  const sched = info.easing ? EASE_SCHEDULE : FULL_SCHEDULE;
+  const todayKey = ymd(now);
+
+  root.innerHTML = `
+    <div class="brandrow"><div class="brand">Logbook</div><div class="datebadge">${now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div></div>
+    <div class="sub">Toned, not tiny — one steady week at a time.</div>
+    ${info.period.active ? periodBanner(info) : rampStrip(info)}
+    ${info.prep.isPrepDay && !info.period.active ? prepBanner() : ''}
+    <div class="tabs">
+      ${tabBtn('today','Today')}${tabBtn('cycle','Cycle')}${tabBtn('sleep','Sleep')}${tabBtn('progress','Progress')}${tabBtn('shopping','Shopping')}${tabBtn('recipes','Recipes')}
+    </div>
+    <div id="tabcontent"></div>
+    ${recipeModalState.open ? renderRecipeModal() : ''}
+  `;
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{activeTab=b.dataset.tab; render();});
+  const content = document.getElementById('tabcontent');
+  if(activeTab==='today') content.innerHTML = renderToday(info, sched, todayKey, now);
+  if(activeTab==='cycle') content.innerHTML = renderCycle(info);
+  if(activeTab==='sleep') content.innerHTML = renderSleep(now);
+  if(activeTab==='progress') content.innerHTML = '<div class="loading">Loading your history…</div>';
+  if(activeTab==='shopping') content.innerHTML = renderShopping(info);
+  if(activeTab==='recipes') content.innerHTML = renderRecipes(now);
+  wireEvents(info, todayKey, now);
+  wireRecipeCards();
+  if(activeTab==='progress') renderProgressAsync(content);
+}
+
+function tabBtn(id,label){return `<button class="tab ${activeTab===id?'active':''}" data-tab="${id}">${label}</button>`;}
+function periodBanner(info){
+  const phaseTxt = info.period.phase==='rest' ? 'Rest days — no exercise scheduled' : 'Light days — gentle movement only';
+  return `<div class="banner period"><div class="lbl">Period day ${info.period.periodDay} of 5</div><div class="txt">${phaseTxt}. Calorie target nudged up a little today. Check the Cycle tab to adjust dates.</div></div>`;
+}
+function prepBanner(){ return `<div class="banner prep"><div class="lbl">Prep & shop day</div><div class="txt">Cook fresh today for the next 3 days. Check the Shopping tab.</div></div>`; }
+
+function rampStrip(info){
+  const days = [1,2,3,4,5,6,7];
+  const activeIdx = info.easing ? info.easeDay : (info.notStarted?0:7);
+  const fillPct = info.easing ? ((info.easeDay-1)/6*96)+2 : (info.notStarted? 2 : 98);
+  let dots = days.map(d=>{
+    const cls = d < activeIdx ? 'done' : (d===activeIdx && info.easing ? 'today' : '');
+    const leftPct = 2 + (d-1)*(96/6);
+    return `<div class="ramp-dot ${cls}" style="left:${leftPct}%">${d}</div>`;
+  }).join('');
+  const startLabel = START.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const caption = info.notStarted ? `Starts <b>tomorrow, ${startLabel}</b> — first week eases in gently.` : info.easing ? `Easing-in week — <b>day ${info.easeDay} of 7</b>.` : `Full routine — easing-in week complete. Steady as she goes!`;
+  return `<div class="ramp"><div class="ramp-label">Week 1 accommodation ramp</div><div class="ramp-track"><div class="ramp-line"></div><div class="ramp-line-fill" style="width:${fillPct}%"></div>${dots}</div><div class="ramp-caption">${caption}</div></div>`;
+}
+
+function renderMealBlock(slot, label, time, note, info, monthSet, dow){
+  const ui = mealUI[slot];
+  const on = !!state.checklist[slot];
+  const orderOpt = getOrderIn(slot, dow);
+  const recipe = getFreshRecipe(slot, dow, info.diet, monthSet);
+  let body = '';
+  if(ui.open){
+    body += `<div class="meal-body">
+      <div class="optchip-row">
+        <div class="optchip ${ui.sel==='order'?'sel':''}" data-slot="${slot}" data-opt="order">Order in</div>
+        <div class="optchip ${ui.sel==='fridge'?'sel':''}" data-slot="${slot}" data-opt="fridge">From the fridge</div>
+        <div class="optchip ${ui.sel==='fresh'?'sel':''}" data-slot="${slot}" data-opt="fresh">Fresh recipe</div>
+      </div>`;
+    if(ui.sel==='order'){
+      body += `<div class="opt-content"><b>${orderOpt.cuisine}</b> — ${orderOpt.dish}<br><span style="color:var(--ink-soft);">${orderOpt.note}</span></div>`;
+    } else if(ui.sel==='fridge'){
+      body += `<div class="opt-content"><b>${recipe.name}</b><br>${note} It's the batch you prepped on your last prep day.</div>`;
+    } else if(ui.sel==='fresh'){
+      body += `<div class="opt-content"><b>${recipe.name}</b><div class="recipe-ing">${recipe.ing.join(' · ')}</div><ol class="recipe-steps">${recipe.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+    } else {
+      body += `<div class="opt-content" style="color:var(--ink-soft);">Choose how you're eating this meal.</div>`;
+    }
+    body += `</div>`;
+  }
+  return `<div class="meal-block">
+    <div class="meal-head" data-mealtoggle="${slot}">
+      <div class="check ${on?'on':''}" data-id="${slot}"></div>
+      <div class="item-text ${on?'struck':''}">${label}<span class="item-time">${time}</span></div>
+      <div class="meal-caret">${ui.open?'▲':'▼'}</div>
+    </div>
+    ${body}
+  </div>`;
+}
+
+let assistantUI = { mode:'ask', question:'', loading:false, response:null, error:null, logDesc:'', logLoading:false, logResult:null, logError:null, logImageBase64:null, logImageMediaType:null, logImageName:null };
+function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r = new FileReader(); r.onload=()=>resolve(r.result.split(',')[1]); r.onerror=reject; r.readAsDataURL(file); }); }
+
+function renderAssistantCard(remaining, info, extraItems){
+  const modeChips = `
+    <div class="optchip-row">
+      <div class="optchip ${assistantUI.mode==='ask'?'sel':''}" data-amode="ask">What should I eat?</div>
+      <div class="optchip ${assistantUI.mode==='log'?'sel':''}" data-amode="log">I ate something else</div>
+    </div>`;
+  let body = '';
+  if(assistantUI.mode==='ask'){
+    body = `
+      <div class="meta">Tell it what you're craving or considering ordering — it knows your remaining calories, diet type, and today's context.</div>
+      <textarea class="f" id="ask-input" placeholder="e.g. I want pizza tonight, what should I do?">${assistantUI.question}</textarea>
+      <button class="btn teal small" id="ask-send" ${assistantUI.loading?'disabled':''}>${assistantUI.loading?'Thinking…':'Ask'}</button>
+      ${assistantUI.error?`<div class="howto" style="background:#FFE6E2;color:#B23B2B;">${assistantUI.error}</div>`:''}
+      ${assistantUI.response?`<div class="opt-content" style="margin-top:12px;"><b>Suggestion:</b> ${assistantUI.response.recommendation}<br><b>Calorie ceiling for this meal:</b> ${assistantUI.response.calorieCeiling} kcal<br><span style="color:var(--ink-soft);">${assistantUI.response.note||''}</span></div>`:''}
+    `;
+  } else {
+    body = `
+      <div class="meta">Ramen, chips, a packaged snack — describe it, or snap/upload a photo of the nutrition label, and it'll tell you if it fits today plus how to adjust the rest of your meals if you eat it.</div>
+      <textarea class="f" id="log-input" placeholder="e.g. 2 slices of pepperoni pizza and a coke — or leave blank if you're attaching a label photo">${assistantUI.logDesc}</textarea>
+      <label class="f">Or attach a nutrition label photo (optional)</label>
+      <input class="f" type="file" accept="image/*" id="log-image-input">
+      ${assistantUI.logImageName?`<div class="meta" style="margin-top:-8px;">Attached: ${assistantUI.logImageName} <span style="color:var(--coral-deep);cursor:pointer;text-decoration:underline;" id="log-image-remove">remove</span></div>`:''}
+      <button class="btn teal small" id="log-send" ${assistantUI.logLoading?'disabled':''}>${assistantUI.logLoading?'Reading & estimating…':'Check it & log'}</button>
+      ${assistantUI.logError?`<div class="howto" style="background:#FFE6E2;color:#B23B2B;">${assistantUI.logError}</div>`:''}
+      ${assistantUI.logResult?`<div class="opt-content" style="margin-top:12px;"><b>${assistantUI.logResult.summary}</b> — logged ${assistantUI.logResult.estimatedCalories} kcal.<br><b>Verdict:</b> ${assistantUI.logResult.verdict}<br><b>If you eat it, adjust:</b> ${assistantUI.logResult.adjustment}</div>`:''}
+      ${extraItems.length?`<div class="divider"></div><div class="meta">Logged today:</div>${extraItems.map(e=>`<div class="logrow"><span>${e.desc}</span><span>${e.calories} kcal</span></div>`).join('')}`:''}
+    `;
+  }
+  return `<div class="card">
+    <h2>AI diet assistant</h2>
+    ${modeChips}
+    ${body}
+  </div>`;
+}
+
+function renderToday(info, sched, todayKey, now){
+
+  const water = state.water[todayKey]||0;
+  const glassSize = 250;
+  const totalGlasses = Math.round(info.waterTarget/glassSize);
+  let glasses=''; for(let i=1;i<=totalGlasses;i++) glasses += `<div class="glass ${i<=water?'on':''}" data-g="${i}"></div>`;
+
+  const monthSet = RECIPE_SETS[currentRecipeSetIndex(now)];
+  const mealsHtml = [
+    renderMealBlock('breakfast','Breakfast', sched.breakfast, mealNoteFor('breakfast',info.prep.pos), info, monthSet, info.dow),
+    renderMealBlock('lunch','Lunch', sched.lunch, mealNoteFor('lunch',info.prep.pos), info, monthSet, info.dow),
+    renderMealBlock('snack','Afternoon snack', sched.snack, mealNoteFor('snack',info.prep.pos), info, monthSet, info.dow),
+    renderMealBlock('dinner','Dinner', sched.dinner, mealNoteFor('dinner',info.prep.pos), info, monthSet, info.dow),
+  ].join('');
+
+  const drink = MORNING_DRINKS[info.dow];
+  const wIdx = (info.dow+6)%7;
+  const wSet = info.period.active ? (info.period.phase==='rest' ? ['Rest'] : ['Gentle stretching or a short easy walk']) : (info.easing ? WORKOUTS[wIdx].ease : WORKOUTS[wIdx].full);
+
+  const simpleItems = [
+    {id:'wake', text:'Wake up + one glass of water', time:sched.wake},
+    {id:'midwater', text:'Mid-morning hydration check', time:''},
+    {id:'evwater', text:'Evening hydration check', time:''},
+    {id:'wind', text:'Wind-down — no screens', time:sched.wind},
+    {id:'lights', text:'Lights out', time:sched.lights},
+  ];
+  if(info.prep.isPrepDay) simpleItems.splice(3,0,{id:'shop', text:'Shop + meal prep for the next 3 days', time:''});
+  const simpleHtml = simpleItems.map(i=>{
+    const on = !!state.checklist[i.id];
+    return `<div class="simplecheck"><div class="check ${on?'on':''}" data-id="${i.id}"></div><div class="item-text ${on?'struck':''}">${i.text}${i.time?`<span class="item-time">${i.time}</span>`:''}</div></div>`;
+  }).join('');
+
+  const doneTotal = 9 + (info.prep.isPrepDay?1:0);
+  const doneCount = ['wake','midwater','evwater','wind','lights','shop','breakfast','lunch','snack','dinner'].filter(id=>state.checklist[id]).length;
+
+  let cravingCard = '';
+  if(info.period.active){
+    cravingCard = `<div class="card"><h2>Cravings — sweet swaps</h2><div class="meta">Chocolate cravings here are hormonal, not a lack of willpower.</div>${CRAVINGS.slice(0,5).map(c=>`<div class="craving-item"><b>${c.name}</b> — ${c.why}</div>`).join('')}</div>`;
+  }
+
+  const extraToday = extraLogTotal(todayKey);
+  const remaining = info.calTarget - extraToday;
+  const extraItems = state.extraLog[todayKey]||[];
+  const fb = state.feedback[todayKey];
+  const chips = FEEDBACK_OPTIONS.map(o=>`<div class="chip ${fb&&fb.status===o?'sel':''}" data-fb="${o}">${o}</div>`).join('');
+
+  return `
+    <div class="card">
+      <h2>${info.name}${info.notStarted?' — starts tomorrow':''}</h2>
+      <div class="meta">${info.diet==='veg'?'<span class="tag veg">Vegetarian</span>':'<span class="tag nonveg">Non-veg</span>'} ${info.easing&&!info.period.active?'<span class="tag rest">Easing in</span>':''} ${info.period.active?'<span class="tag period">Period day '+info.period.periodDay+'</span>':''}</div>
+      <div class="grid2">
+        <div class="stat"><div class="num">${remaining}</div><div class="lbl">Calories remaining${extraToday?` (of ${info.calTarget})`:''}</div></div>
+        <div class="stat"><div class="num">${info.waterTarget}ml</div><div class="lbl">Water target</div></div>
+      </div>
+      ${extraToday?`<div class="howto">Logged ${extraToday} kcal extra today so far.</div>`:''}
+      ${info.calNote?`<div class="howto">${info.calNote}</div>`:''}
+    </div>
+    <div class="card">
+      <h2>Hydration</h2>
+      <div class="meta">Tap a glass as you drink (250ml each)</div>
+      <div class="water-row"><div class="water-glasses">${glasses}</div><div class="water-total">${water*glassSize}ml</div></div>
+    </div>
+    <div class="card">
+      <h2>Workout — ${info.workoutLabel}</h2>
+      <div class="meta">${info.period.active ? (info.period.phase==='rest'?'Rest day':'Light day') : (info.easing?'Easing-in version':'Full version')}</div>
+      <ul class="exercise-list">${wSet.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="card">
+      <h2>Morning wellness drink <span style="font-size:11px;color:var(--ink-soft);font-weight:400;">(optional)</span></h2>
+      <b>${drink.name}</b>
+      <div class="recipe-ing">${drink.ing.join(' · ')}</div>
+      <div class="howto">${drink.benefit} Shelf life: ${drink.shelf}.</div>
+    </div>
+    <div class="card">
+      <h2>Meals — tap to choose how you're eating</h2>
+      <div class="meta">Order in, from the fridge, or cook fresh — your call each time.</div>
+      ${state.todayAdjustment[todayKey]?`<div class="howto">Today's adjustment: ${state.todayAdjustment[todayKey]}</div>`:''}
+      ${mealsHtml}
+    </div>
+    ${renderAssistantCard(remaining, info, extraItems)}
+    <div class="card">
+      <h2>Rhythm checklist</h2>
+      <div class="meta">${doneCount} of ${doneTotal} done ${doneCount===doneTotal?'— nice one!':''}</div>
+      ${state.todayAdjustment[todayKey]?`<div class="howto">Keep in mind: ${state.todayAdjustment[todayKey]}</div>`:''}
+      ${simpleHtml}
+    </div>
+    ${cravingCard}
+    <div class="card">
+      <h2>Daily check-in</h2>
+      <div class="meta">How did today go?</div>
+      <div class="chiprow">${chips}</div>
+      <textarea class="f" id="fb-note" placeholder="Anything to note — missed a task, ate more/less, etc.">${fb&&fb.note?fb.note:''}</textarea>
+      <button class="btn teal small" id="save-fb">Save check-in</button>
+    </div>
+  `;
+}
+
+function renderCycle(info){
+  const c = state.cycle;
+  const status = info.period.active ? `Currently on period day ${info.period.periodDay} of 5 (${info.period.phase==='rest'?'rest phase':'light phase'}).` : (c.lastStart ? `Not on your period right now. Next one predicted around your ${c.avgLength}-day cycle from ${c.lastStart}.` : `No period logged yet — set your last start date below, or tap the button on day one.`);
+  return `<div class="card">
+    <h2>Cycle settings</h2>
+    <div class="meta">${status}</div>
+    <label class="f">Last period start date</label>
+    <input class="f" type="date" id="cycle-date" value="${c.lastStart||''}">
+    <label class="f">Average cycle length (days)</label>
+    <input class="f" type="number" id="cycle-length" value="${c.avgLength||28}" min="20" max="45">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn" id="save-cycle">Save settings</button><button class="btn plum" id="period-today">Period started today</button></div>
+  </div>
+  <div class="card"><h2>How this adjusts your plan</h2><div style="font-size:14px;line-height:1.9;">
+    <b>Days 1-3</b> — workout swaps to full rest.<br><b>Days 4-5</b> — light movement only.<br>
+    Calorie target nudges up slightly, cravings card appears with healthy sweet swaps.<br>
+    Shopping list gets a cravings-kit category so you're stocked ahead of time.
+  </div></div>`;
+}
+
+function renderSleep(now){
+  const t = sleepTargetsFor(now);
+  const tmrw = sleepTargetsFor(new Date(now.getTime()+86400000));
+  const log = state.sleepLog.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const rows = log.map(e=>{
+    const s=timeStrToHours(e.sleep), w=timeStrToHours(e.wake);
+    const dur = (s!==null&&w!==null) ? (((w-s)+24)%24).toFixed(1) : '—';
+    return `<div class="logrow"><span class="d">${e.date}</span><span>Slept ${e.sleep||'—'} → Woke ${e.wake||'—'} (${dur}h)</span></div>`;
+  }).join('') || '<div class="meta">No entries yet — add your first one below.</div>';
+  return `<div class="card">
+    <h2>Sleep shift plan</h2>
+    <div class="meta">You're starting around 4-5am → 12-1pm. We shift gradually, ~20 min earlier every 2 days.</div>
+    <div class="grid2">
+      <div class="stat"><div class="num">${t.bedStr}</div><div class="lbl">Tonight's target bedtime</div></div>
+      <div class="stat"><div class="num">${tmrw.wakeStr}</div><div class="lbl">Tomorrow's target wake</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Log an entry</h2>
+    <label class="f">Date you woke up</label>
+    <input class="f" type="date" id="sleep-date" value="${ymd(now)}">
+    <div class="grid2">
+      <div><label class="f">Fell asleep at</label><input class="f" type="time" id="sleep-time"></div>
+      <div><label class="f">Woke up at</label><input class="f" type="time" id="wake-time"></div>
+    </div>
+    <button class="btn teal small" id="save-sleep">Save entry</button>
+  </div>
+  <div class="card"><h2>Your log</h2>${rows}</div>`;
+}
+
+async function renderProgressAsync(content){
+  const dates = [];
+  for(let i=0;i<14;i++){ dates.push(ymd(new Date(Date.now()-i*86400000))); }
+  let rows = [];
+  for(const d of dates){
+    try{
+      const r = await window.storage.get('daily-state:'+d);
+      if(r){
+        const v = JSON.parse(r.value);
+        const total = 10;
+        const done = v.checklist ? Object.values(v.checklist).filter(Boolean).length : 0;
+        rows.push({date:d, done, total, water:v.water||0, feedback: v.feedback?v.feedback.status:null});
+      }
+    }catch(e){}
+  }
+  const lastWeight = state.weightLog.length ? state.weightLog[state.weightLog.length-1] : null;
+  const daysSinceWeight = lastWeight ? Math.floor((Date.now()-new Date(lastWeight.date).getTime())/86400000) : 999;
+  const sortedWeights = state.weightLog.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const weightRows = sortedWeights.map((w,idx,arr)=>{
+    const prev = arr[idx+1];
+    const delta = prev ? (w.weight-prev.weight).toFixed(1) : null;
+    return `<div class="logrow"><span class="d">${w.date}</span><span>${w.weight} kg ${delta!==null?`(${delta>0?'+':''}${delta})`:''}</span></div>`;
+  }).join('') || '<div class="meta">No weight entries yet.</div>';
+  const dayRows = rows.map(r=>`<div class="logrow"><span class="d">${r.date}</span><span>${r.done}/${r.total} tasks · ${r.water*250}ml water ${r.feedback?'· '+r.feedback:''}</span></div>`).join('') || '<div class="meta">No history yet.</div>';
+
+  content.innerHTML = `
+    <div class="card">
+      <h2>Weekly weigh-in</h2>
+      <div class="meta">${daysSinceWeight>=7 ? "It's been a week or more — time for a check-in!" : "Logged "+daysSinceWeight+" day(s) ago."}</div>
+      <div class="grid2">
+        <div><label class="f">Date</label><input class="f" type="date" id="weight-date" value="${ymd(new Date())}"></div>
+        <div><label class="f">Weight (kg)</label><input class="f" type="number" step="0.1" id="weight-val" placeholder="e.g. 71.5"></div>
+      </div>
+      <button class="btn teal small" id="save-weight">Save weight</button>
+    </div>
+    <div class="card"><h2>Weight history</h2>${weightRows}</div>
+    <div class="card"><h2>Day-by-day log (last 14 days)</h2>${dayRows}</div>
+  `;
+  const saveWeightBtn = document.getElementById('save-weight');
+  if(saveWeightBtn) saveWeightBtn.onclick = async ()=>{
+    const d = document.getElementById('weight-date').value;
+    const v = parseFloat(document.getElementById('weight-val').value);
+    if(d && !isNaN(v)){ state.weightLog.push({date:d, weight:v}); await saveWeightLog(); render(); }
+  };
+}
+
+function renderShopping(info){
+  let html = `<div class="card"><h2>Shopping list — every 3 days</h2><div class="meta">${info.prep.isPrepDay ? "Today's a prep/shop day! Check things off as you buy them." : "Next shop day comes around every 3 days."}</div>`;
+  Object.keys(SHOPPING).forEach(cat=>{
+    html += `<div class="shop-cat">${cat}</div>`;
+    SHOPPING[cat].forEach(item=>{
+      const key = cat+'::'+item;
+      const checked = !!state.shopping[key];
+      html += `<div class="shop-item ${checked?'checked':''}"><div class="check ${checked?'on':''}" data-shop="${key}" style="width:18px;height:18px;flex:0 0 18px;"></div><span>${item}</span></div>`;
+    });
+  });
+  html += `<div class="divider"></div><div style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn ghost small" id="reset-shopping">Reset checklist</button><button class="btn small" id="prep-today">I shopped &amp; prepped today</button></div></div>`;
+  return html;
+}
+
+let recipeModalState = { open:false, recipe:null, lastsLabel:'' };
+let recipeLookup = [];
+
+function recipeCard(r, lastsLabel){
+  const idx = recipeLookup.length;
+  recipeLookup.push({recipe:r, lastsLabel});
+  return `<div class="card recipe-card-clickable" data-recipeidx="${idx}">
+      <h2>${r.name}</h2>
+      <div class="meta">${r.tag?`<span class="tag ${r.tag}">${r.tag==='veg'?'Vegetarian':'Non-veg'}</span> `:''}${r.time||''}</div>
+      <div class="howto" style="background:#EAF3F0;color:var(--teal-deep);">${lastsLabel}</div>
+      <div class="recipe-tap-hint">Tap for the full step-by-step recipe →</div>
+    </div>`;
+}
+
+function renderRecipeModal(){
+  const r = recipeModalState.recipe;
+  if(!r) return '';
+  return `<div class="modal-overlay" id="recipe-modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" id="recipe-modal-close">✕</button>
+      <h2>${r.name}</h2>
+      <div class="meta">${r.tag?`<span class="tag ${r.tag}">${r.tag==='veg'?'Vegetarian':'Non-veg'}</span> `:''}${r.time||''}</div>
+      <div class="howto" style="background:#EAF3F0;color:var(--teal-deep);">${recipeModalState.lastsLabel}</div>
+      <div class="modal-section-title">Ingredients</div>
+      ${r.ing.map(i=>`<div class="modal-ing-item">${i}</div>`).join('')}
+      <div class="modal-section-title">Steps</div>
+      ${r.steps.map((s,i)=>`<div class="modal-step"><div class="modal-step-num">${i+1}</div><div class="modal-step-text">${s}</div></div>`).join('')}
+      ${r.howToEat?`<div class="modal-section-title">How to eat it</div><div class="opt-content">${r.howToEat}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function wireRecipeCards(){
+  document.querySelectorAll('[data-recipeidx]').forEach(el=>{
+    el.onclick = ()=>{
+      const entry = recipeLookup[parseInt(el.dataset.recipeidx)];
+      recipeModalState = { open:true, recipe: entry.recipe, lastsLabel: entry.lastsLabel };
+      render();
+    };
+  });
+  const closeBtn = document.getElementById('recipe-modal-close');
+  if(closeBtn) closeBtn.onclick = ()=>{ recipeModalState.open = false; render(); };
+  const overlay = document.getElementById('recipe-modal-overlay');
+  if(overlay) overlay.onclick = (e)=>{ if(e.target===overlay){ recipeModalState.open = false; render(); } };
+}
+
+
+function renderRecipes(now){
+  recipeLookup = [];
+  const setIdx = currentRecipeSetIndex(now);
+  const set = RECIPE_SETS[setIdx];
+  const isOverride = state.recipeSetOverride!==null;
+  const cravingsCard = `<div class="card"><h2>Cravings kit — sweet swaps</h2><div class="meta">Keep these ready for period days 1-5.</div>${CRAVINGS.map(c=>`<div class="craving-item"><b>${c.name}</b> — ${c.why}</div>`).join('')}</div>`;
+  const header = `<div class="card" style="background:#FFF3D6;">
+    <h2>${isOverride ? "Recipe set: " : "This month's rotation: "}${set.label}</h2>
+    <div class="meta">${isOverride ? "Manually set — won't change automatically until you refresh again or reset to auto." : "Recipes refresh automatically every month for variety."}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn teal small" id="refresh-recipes">Refresh to next set</button>
+      ${isOverride ? '<button class="btn ghost small" id="reset-recipes">Back to automatic (by month)</button>' : ''}
+    </div>
+  </div>`;
+
+  const prepItems = set.items.filter(r=>r.prepType==='prep');
+  const freshFromSet = set.items.filter(r=>r.prepType==='fresh');
+  const prepSectionHeader = `<div class="card" style="background:#EAF3F0;"><h2>Meal prep recipes</h2><div class="meta">Batch-cook these on your prep day — each keeps safely in the fridge for the number of days shown, matching your 3-day prep cycle.</div></div>`;
+  const prepCards = prepItems.map(r=>recipeCard(r, `Lasts up to ${r.lastsDays} days refrigerated`)).join('');
+
+  const freshSectionHeader = `<div class="card" style="background:#FDEDE7;"><h2>Fresh recipes</h2><div class="meta">Best made same-day — breakfasts, snacks, and a couple of quick salads that don't hold up well as leftovers.</div></div>`;
+  const freshBreakfast = [...BREAKFAST_OPTIONS.veg, ...BREAKFAST_OPTIONS.nonveg];
+  const freshSnacks = SNACK_OPTIONS;
+  const freshCards = [...freshFromSet, ...freshBreakfast, ...freshSnacks].map(r=>recipeCard(r, r.lastsDays===0 ? 'Best made fresh — not for batch prep' : 'Best eaten same day, up to 1 day refrigerated')).join('');
+
+  return header + cravingsCard + prepSectionHeader + prepCards + freshSectionHeader + freshCards;
+}
+
+function wireEvents(info, todayKey, now){
+  document.querySelectorAll('.check[data-id]').forEach(el=>{ el.onclick = async (e)=>{ e.stopPropagation(); const id = el.dataset.id; state.checklist[id] = !state.checklist[id]; await saveDaily(); render(); }; });
+  document.querySelectorAll('[data-mealtoggle]').forEach(el=>{ el.onclick = (e)=>{ if(e.target.classList.contains('check')) return; const slot = el.dataset.mealtoggle; mealUI[slot].open = !mealUI[slot].open; render(); }; });
+  document.querySelectorAll('.optchip[data-slot]').forEach(el=>{ el.onclick = ()=>{ const slot = el.dataset.slot; const opt = el.dataset.opt; mealUI[slot].sel = opt; render(); }; });
+  document.querySelectorAll('.glass').forEach(el=>{ el.onclick = async ()=>{ const g = parseInt(el.dataset.g); const cur = state.water[todayKey]||0; state.water[todayKey] = (g===cur) ? g-1 : g; await saveDaily(); render(); }; });
+  document.querySelectorAll('.check[data-shop]').forEach(el=>{ el.onclick = async ()=>{ const key = el.dataset.shop; state.shopping[key] = !state.shopping[key]; await saveShopping(); render(); }; });
+  const resetBtn = document.getElementById('reset-shopping'); if(resetBtn) resetBtn.onclick = async ()=>{ state.shopping = {}; await saveShopping(); render(); };
+  const prepTodayBtn = document.getElementById('prep-today'); if(prepTodayBtn) prepTodayBtn.onclick = async ()=>{ state.prepAnchor = ymd(new Date()); await savePrepAnchor(); render(); };
+  const saveCycleBtn = document.getElementById('save-cycle'); if(saveCycleBtn) saveCycleBtn.onclick = async ()=>{ const dateVal = document.getElementById('cycle-date').value; const lenVal = parseInt(document.getElementById('cycle-length').value)||28; state.cycle = {lastStart: dateVal||null, avgLength: lenVal}; await saveCycle(); render(); };
+  const periodTodayBtn = document.getElementById('period-today'); if(periodTodayBtn) periodTodayBtn.onclick = async ()=>{ const today = ymd(new Date()); state.cycle = {...state.cycle, lastStart: today}; await saveCycle(); render(); };
+  document.querySelectorAll('.chip[data-fb]').forEach(el=>{
+    el.onclick = ()=>{ const status = el.dataset.fb; const noteEl = document.getElementById('fb-note'); const note = noteEl ? noteEl.value : ''; state.feedback[todayKey] = {status, note}; document.querySelectorAll('.chip[data-fb]').forEach(c=>c.classList.toggle('sel', c.dataset.fb===status)); };
+  });
+  const saveFbBtn = document.getElementById('save-fb'); if(saveFbBtn) saveFbBtn.onclick = async ()=>{ const note = document.getElementById('fb-note').value; if(!state.feedback[todayKey]) state.feedback[todayKey] = {status:'On track', note}; else state.feedback[todayKey].note = note; await saveDaily(); render(); };
+  document.querySelectorAll('[data-amode]').forEach(el=>{ el.onclick = ()=>{ assistantUI.mode = el.dataset.amode; render(); }; });
+  const logImageInput = document.getElementById('log-image-input');
+  if(logImageInput) logImageInput.onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(file){
+      try{
+        const base64 = await fileToBase64(file);
+        assistantUI.logImageBase64 = base64;
+        assistantUI.logImageMediaType = file.type;
+        assistantUI.logImageName = file.name;
+        render();
+      }catch(err){ assistantUI.logError = "Couldn't read that photo — try another one."; render(); }
+    }
+  };
+  const logImageRemove = document.getElementById('log-image-remove');
+  if(logImageRemove) logImageRemove.onclick = ()=>{ assistantUI.logImageBase64=null; assistantUI.logImageMediaType=null; assistantUI.logImageName=null; render(); };
+  const askSendBtn = document.getElementById('ask-send');
+  if(askSendBtn) askSendBtn.onclick = async ()=>{
+    const q = document.getElementById('ask-input').value.trim();
+    if(!q) return;
+    assistantUI.question = q; assistantUI.loading = true; assistantUI.error = null; render();
+    try{
+      const system = `You are a supportive, practical diet assistant helping someone with a weight-loss goal. Today they have roughly ${info.calTarget} kcal as their overall target, diet type is ${info.diet}, and it's ${info.name}${info.period.active ? ' (currently on a period, day '+info.period.periodDay+' of 5)':''}. Give a short, warm, practical recommendation for what to eat or order given what they're asking about, favoring the healthiest reasonable version of what they want. Always include a specific calorie ceiling number for this one meal so the rest of the day still stays on track. Respond ONLY with strict JSON, no markdown, no extra text: {"recommendation": "1-3 sentences", "calorieCeiling": number, "note": "short encouraging note"}`;
+      const result = await callClaudeJSON(system, q);
+      assistantUI.response = result;
+    }catch(e){ assistantUI.error = "Couldn't reach the assistant just now — try again in a moment."; }
+    assistantUI.loading = false; render();
+  };
+  const logSendBtn = document.getElementById('log-send');
+  if(logSendBtn) logSendBtn.onclick = async ()=>{
+    const desc = document.getElementById('log-input').value.trim();
+    const hasImage = !!assistantUI.logImageBase64;
+    if(!desc && !hasImage) return;
+    assistantUI.logDesc = desc; assistantUI.logLoading = true; assistantUI.logError = null; render();
+    try{
+      const remainingNow = info.calTarget - extraLogTotal(todayKey);
+      const system = `You are a supportive diet assistant. The user has roughly ${remainingNow} kcal left today out of a ${info.calTarget} kcal target, and wants to eat a packaged or instant food (like ramen, chips, or a packaged snack) as an occasional craving. They've described it and/or attached a photo of the nutrition/energy label — read any calorie or serving info visible in the image if present. Give a clear, kind verdict on whether it reasonably fits into today, and if they eat it, specific practical adjustments for the rest of today's meals and checklist (e.g. lighten dinner, skip the snack, add extra water) so the day still balances out. This is an occasional treat, not a failure — keep the tone supportive, not scolding. Respond ONLY with strict JSON, no markdown, no extra text: {"summary": "product name or short description", "estimatedCalories": number, "verdict": "1 sentence — can they fit this in today or not", "adjustment": "1-2 sentence practical adjustment for the rest of today"}`;
+      let userContent;
+      if(hasImage){
+        userContent = [
+          { type: "image", source: { type:"base64", media_type: assistantUI.logImageMediaType, data: assistantUI.logImageBase64 } },
+          { type: "text", text: desc || "Here's the nutrition/energy label — please read it and estimate calories for a typical serving." }
+        ];
+      } else {
+        userContent = desc;
+      }
+      const result = await callClaudeJSON(system, userContent);
+      const list = state.extraLog[todayKey] || [];
+      list.push({desc: result.summary, calories: result.estimatedCalories});
+      state.extraLog[todayKey] = list;
+      state.todayAdjustment[todayKey] = result.adjustment;
+      await saveDaily();
+      assistantUI.logResult = result; assistantUI.logDesc = '';
+      assistantUI.logImageBase64=null; assistantUI.logImageMediaType=null; assistantUI.logImageName=null;
+    }catch(e){ assistantUI.logError = "Couldn't read/estimate that just now — try again in a moment."; }
+    assistantUI.logLoading = false; render();
+  };
+  const refreshRecipesBtn = document.getElementById('refresh-recipes'); if(refreshRecipesBtn) refreshRecipesBtn.onclick = async ()=>{
+    const current = currentRecipeSetIndex(now);
+    state.recipeSetOverride = (current+1)%RECIPE_SETS.length;
+    await saveRecipeOverride(); render();
+  };
+  const resetRecipesBtn = document.getElementById('reset-recipes'); if(resetRecipesBtn) resetRecipesBtn.onclick = async ()=>{
+    state.recipeSetOverride = null; await saveRecipeOverride(); render();
+  };
+  const saveSleepBtn = document.getElementById('save-sleep'); if(saveSleepBtn) saveSleepBtn.onclick = async ()=>{
+    const d = document.getElementById('sleep-date').value; const s = document.getElementById('sleep-time').value; const w = document.getElementById('wake-time').value;
+    if(d){ state.sleepLog = state.sleepLog.filter(e=>e.date!==d); state.sleepLog.push({date:d, sleep:s, wake:w}); await saveSleepLog(); render(); }
+  };
+}
+
+(async function init(){ await loadState(); render(); })();
+</script>
+</body>
+</html>
